@@ -3,9 +3,8 @@ var bodyParser = require('body-parser');
 var https = require("https");
 var MongoClient = require("mongodb").MongoClient;
 
+//Information for the REST call
 var header = {"X-Apptweak-Key": "QS5NiFFrLERBRML_ptL208cJoWc"};
-var db;
-
 var options = {
 	hostname: "api.apptweak.com",
 	port: 443,
@@ -16,44 +15,48 @@ var options = {
 };
 
 var app = express();
-
 app.use(express.static('static'));
 
 var data;
+var db;
 
+//Route to display the information on the table -> filtering is work in progress
 app.get('/api/bugs', function(req,res){
-	db.collection("data").find().toArray(function(err,docs) {
+	console.log("Query string", req.query);
+	var filter = {};
+	if(req.query.priority)
+		filter.priority = req.query.priority;
+	if(req.query.status)
+		filter.status = req.query.status;
+
+	db.collection("data").find(filter).toArray(function(err,docs) {
 		res.json(data.content); 
 	});
 });
 
+//Route to insert data to our DB, temporary workaround
 app.get('/api/insert', function(req,res){
 	db.collection("data").insertMany(data.content, function(err,result) {
+		//We insert the content portion of our JSON data
 		res.json(data.content); 
 		console.log(result);
 	});
 });
 
-
-
+//Making the https restful request
 var req = https.request(options, function(res) {
  var responseBody =""; 
  console.log("Response from server started."); 
  console.log(`Server Status: ${res.statusCode}`); 
  console.log("Response Headers: %j", res.headers);
  res.setEncoding("UTF-8"); 
-
+ //retrieve the data in chunks
  res.on("data", function(chunk) {
  	responseBody += chunk; });
 
  res.on("end", function(){
- 	/*
- 	fs.writeFile("george-washington.html", responseBody, 
- 		function(err){
- 			if(err){throw err; } 
- 			console.log("File Downloaded"); 
- 		}); */
- 		data = JSON.parse(responseBody);
+ 	//Once completed we parse the data in JSON format
+ 	data = JSON.parse(responseBody);
  });
 });
 
@@ -65,7 +68,7 @@ req.end();
 
 
 app.use(bodyParser.json());
-
+//POST request from demo -> Not in use currently
 app.post('/api/bugs/', function(req, res) {
 	console.log("Req body:", req.body);
 	var newBug = req.body;
@@ -73,7 +76,7 @@ app.post('/api/bugs/', function(req, res) {
 	bugData.push(newBug);
 	res.json(newBug);
 });
-
+//We conntect to the database once we run this file
 MongoClient.connect('mongodb://localhost/mobile', function(err, dbConnection) {
   db = dbConnection;
   var server = app.listen(3000, function() {
