@@ -24,10 +24,10 @@ var db;
 app.get('/api/bugs', function(req,res){
 	console.log("Query string", req.query);
 	var filter = {};
-	if(req.query.priority)
-		filter.priority = req.query.priority;
-	if(req.query.status)
-		filter.status = req.query.status;
+	if(req.query.title)
+		filter.title = req.query.title;
+	if(req.query.developer)
+		filter.developer = req.query.developer;
 
 	db.collection("data").find(filter).toArray(function(err,docs) {
 		res.json(docs); 
