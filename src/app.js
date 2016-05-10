@@ -1,122 +1,28 @@
-var BugFilter = React.createClass({
+var React = require('react');
+var ReactDOM = require('react-dom');
+var Router = require('react-router').Router;
+var Route = require('react-router').Route;
+var Redirect = require('react-router').Redirect;
+
+var BugList = require('./BugList');
+
+
+var NoMatch = React.createClass({
   render: function() {
-    console.log("Rendering BugFilter");
     return (
-      <div>A way to filter the list of bugs would come here.</div>
-    )
+      <h2>No match for the route</h2>
+      );
   }
 });
 
-var BugRow = React.createClass({
-  render: function() {
-    console.log("Rendering BugRow:", this.props.bug);
-    return (
-      <tr>
-        <td>{this.props.bug._id}</td>
-        <td>{this.props.bug.title}</td>
-        <td>{this.props.bug.developer}</td>
-        <td>{this.props.bug.price}</td>
-        <td>{this.props.bug.genres}</td>
-        <td>{this.props.bug.devices}</td>
-      </tr>
-    )
-  }
-});
-
-var BugTable = React.createClass({
-  render: function() {
-    console.log("Rendering bug table, num items:", this.props.bugs.length);
-    var bugRows = this.props.bugs.map(function(bug) {
-      return <BugRow key={bug._id} bug={bug} />
-    });
-    return (
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Developer</th>
-            <th>Price</th>
-            <th>Category</th>
-            <th>Device</th>
-          </tr>
-        </thead>
-        <tbody>
-          {bugRows}
-        </tbody>
-      </table>
-    )
-  }
-});
-
-var BugAdd = React.createClass({
-  render: function() {
-    console.log("Rendering BugAdd");
-    return (
-      <div>
-        <form name="bugAdd">
-          <input type="text" name="owner" placeholder="Owner" />
-          <input type="text" name="title" placeholder="Title" />
-          <button onClick={this.handleSubmit}>Add Bug</button>
-        </form>
-      </div>
-    )
-  },
-
-  handleSubmit: function(e) {
-    e.preventDefault();
-    var form = document.forms.bugAdd;
-    this.props.addBug({owner: form.owner.value, title: form.title.value, status: 'New', priority: 'P1'});
-    // clear the form for the next input
-    form.owner.value = ""; form.title.value = "";
-  }
-});
-
-var BugList = React.createClass({
-  getInitialState: function() {
-    return {bugs: []};
-  },
-  render: function() {
-    console.log("Rendering bug list, num items:", this.state.bugs.length);
-    return (
-      <div>
-        <h1>Bug Tracker</h1>
-        <BugFilter />
-        <hr />
-        <BugTable bugs={this.state.bugs}/>
-        <hr />
-        <BugAdd addBug={this.addBug} />
-      </div>
-    )
-  },
-
-  componentDidMount: function() {
-    $.ajax('/api/bugs').done(function(data) {
-      this.setState({bugs: data});
-    }.bind(this));
-    // In production, we'd also handle errors.
-  },
-
-  addBug: function(bug) {
-    console.log("Adding bug:", bug);
-    $.ajax({
-      type: 'POST', url: '/api/bugs', contentType: 'application/json',
-      data: JSON.stringify(bug),
-      success: function(data) {
-        var bug = data;
-        // We're advised not to modify the state, it's immutable. So, make a copy.
-        var bugsModified = this.state.bugs.concat(bug);
-        this.setState({bugs: bugsModified});
-      }.bind(this),
-      error: function(xhr, status, err) {
-        // ideally, show error to user.
-        console.log("Error adding bug:", err);
-      }
-    });
-  }
-});
 
 ReactDOM.render(
-  <BugList />,
+  (
+    <Router>
+      <Route path="/bugs" component={BugList} />
+      <Redirect from="/" to="/bugs" />
+      <Route path="*" component={NoMatch} />
+    </Router>
+  ),
   document.getElementById('main')
 );

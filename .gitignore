@@ -18,3 +18,4 @@
 sftp-config.json
 node_modules/
 data/
+static/bundle.js

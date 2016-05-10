@@ -24,24 +24,26 @@ var db;
 app.get('/api/bugs', function(req,res){
 	console.log("Query string", req.query);
 	var filter = {};
-	if(req.query.priority)
-		filter.priority = req.query.priority;
-	if(req.query.status)
-		filter.status = req.query.status;
+	if(req.query.title)
+		filter.title = req.query.title;
+	if(req.query.developer)
+		filter.developer = req.query.developer;
 
 	db.collection("data").find(filter).toArray(function(err,docs) {
-		res.json(data.content); 
+		res.json(docs); 
 	});
 });
 
 //Route to insert data to our DB, temporary workaround
 app.get('/api/insert', function(req,res){
 	db.collection("data").insertMany(data.content, function(err,result) {
-		//We insert the content portion of our JSON data
+		//We insert the content portion of our JSON data and display it
 		res.json(data.content); 
 		console.log(result);
 	});
 });
+
+app.use(bodyParser.json());
 
 //Making the https restful request
 var req = https.request(options, function(res) {
@@ -67,7 +69,6 @@ req.on("error", function(err) {
 req.end();
 
 
-app.use(bodyParser.json());
 //POST request from demo -> Not in use currently
 app.post('/api/bugs/', function(req, res) {
 	console.log("Req body:", req.body);
@@ -76,6 +77,7 @@ app.post('/api/bugs/', function(req, res) {
 	bugData.push(newBug);
 	res.json(newBug);
 });
+
 //We conntect to the database once we run this file
 MongoClient.connect('mongodb://localhost/mobile', function(err, dbConnection) {
   db = dbConnection;
